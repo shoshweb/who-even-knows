@@ -1,0 +1,81 @@
+[20/10/2025 21:26:29] 🚀🚀🚀 NUCLEAR-XML-RECONSTRUCTION v5.1.3 ENHANCED PROCESSING DOCUMENT! 🚀🚀🚀 PDF: FALSE
+[20/10/2025 21:26:29] === USR vs PT2 FIELD COMPARISON ===
+[20/10/2025 21:26:29] USR_Name: ✅ HAS VALUE: Acme Corporation Pty Ltd
+[20/10/2025 21:26:29] PT2_Name: ✅ HAS VALUE: GlobalTech Solutions Pty Ltd
+[20/10/2025 21:26:29] STYLE/SECTION BEFORE: word/document.xml styles=0 sectPr=3
+[20/10/2025 21:26:29] NEW MERGE TAG PROCESSING IS RUNNING! Processing: word/document.xml
+[20/10/2025 21:26:29] 🔍 FIELD COMPARISON: USR_Business = 'Acme Corp' (empty: NO)
+[20/10/2025 21:26:29] 🔍 FIELD COMPARISON: PT2_Business = 'GlobalTech' (empty: NO)
+[20/10/2025 21:26:29] 🔍 FIELD COMPARISON: USR_Name = 'Acme Corporation Pty Ltd' (empty: NO)
+[20/10/2025 21:26:29] 🔍 FIELD COMPARISON: PT2_Name = 'GlobalTech Solutions Pty Ltd' (empty: NO)
+[20/10/2025 21:26:29] 🔍🔍🔍 MERGE TAG REPLACEMENT STARTING! 🔍🔍🔍
+[20/10/2025 21:26:29] File: word/document.xml
+[20/10/2025 21:26:29] Replacement Array Size: 513
+[20/10/2025 21:26:29] Sample XML Content (first 500 chars): <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/1
+[20/10/2025 21:26:29] ✅✅✅ CRITICAL REPLACEMENT MADE! ✅✅✅
+[20/10/2025 21:26:29] Tag: {$USR_Business}
+[20/10/2025 21:26:29] Value: Acme Corp
+[20/10/2025 21:26:29] Count: 1
+[20/10/2025 21:26:29] ✅✅✅ CRITICAL REPLACEMENT MADE! ✅✅✅
+[20/10/2025 21:26:29] Tag: {$USR_Name}
+[20/10/2025 21:26:29] Value: Acme Corporation Pty Ltd
+[20/10/2025 21:26:29] Count: 1
+[20/10/2025 21:26:29] 🎯 MODIFIER DEBUG: {$USR_Name} = 'Acme Corporation Pty Ltd' - modifier matches: 1
+[20/10/2025 21:26:29] 🎯 MODIFIER SUCCESS: {$USR_Name|upper} -> 'ACME CORPORATION PTY LTD'
+[20/10/2025 21:26:29] 🎯 MODIFIER DEBUG: {$PT2_Name} = 'GlobalTech Solutions Pty Ltd' - modifier matches: 1
+[20/10/2025 21:26:29] 🎯 MODIFIER SUCCESS: {$PT2_Name|upper} -> 'GLOBALTECH SOLUTIONS PTY LTD'
+[20/10/2025 21:27:26] 🚀🚀🚀 NUCLEAR-XML-RECONSTRUCTION v5.1.3 ENHANCED PROCESSING DOCUMENT! 🚀🚀🚀 PDF: FALSE
+[20/10/2025 21:27:26] === USR vs PT2 FIELD COMPARISON ===
+[20/10/2025 21:27:26] USR_Name: ✅ HAS VALUE: Acme Corporation Pty Ltd
+[20/10/2025 21:27:26] PT2_Name: ✅ HAS VALUE: GlobalTech Solutions Pty Ltd
+[20/10/2025 21:27:26] STYLE/SECTION BEFORE: word/document.xml styles=0 sectPr=3
+[20/10/2025 21:27:26] NEW MERGE TAG PROCESSING IS RUNNING! Processing: word/document.xml
+[20/10/2025 21:27:26] 🔍 FIELD COMPARISON: USR_Business = 'Acme Corp' (empty: NO)
+[20/10/2025 21:27:26] 🔍 FIELD COMPARISON: PT2_Business = 'GlobalTech' (empty: NO)
+[20/10/2025 21:27:26] 🔍 FIELD COMPARISON: USR_Name = 'Acme Corporation Pty Ltd' (empty: NO)
+[20/10/2025 21:27:26] 🔍 FIELD COMPARISON: PT2_Name = 'GlobalTech Solutions Pty Ltd' (empty: NO)
+[20/10/2025 21:27:26] 🔍🔍🔍 MERGE TAG REPLACEMENT STARTING! 🔍🔍🔍
+[20/10/2025 21:27:26] File: word/document.xml
+[20/10/2025 21:27:26] Replacement Array Size: 513
+[20/10/2025 21:27:26] Sample XML Content (first 500 chars): <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/1
+[20/10/2025 21:27:26] ✅✅✅ CRITICAL REPLACEMENT MADE! ✅✅✅
+[20/10/2025 21:27:26] Tag: {$USR_Business}
+[20/10/2025 21:27:26] Value: Acme Corp
+[20/10/2025 21:27:26] Count: 1
+[20/10/2025 21:27:26] ✅✅✅ CRITICAL REPLACEMENT MADE! ✅✅✅
+[20/10/2025 21:27:26] Tag: {$USR_Name}
+[20/10/2025 21:27:26] Value: Acme Corporation Pty Ltd
+[20/10/2025 21:27:26] Count: 1
+[20/10/2025 21:27:26] 🎯 MODIFIER DEBUG: {$USR_Name} = 'Acme Corporation Pty Ltd' - modifier matches: 1
+[20/10/2025 21:27:26] 🎯 MODIFIER SUCCESS: {$USR_Name|upper} -> 'ACME CORPORATION PTY LTD'
+[20/10/2025 21:27:26] 🎯 MODIFIER DEBUG: {$PT2_Name} = 'GlobalTech Solutions Pty Ltd' - modifier matches: 1
+[20/10/2025 21:27:26] 🎯 MODIFIER SUCCESS: {$PT2_Name|upper} -> 'GLOBALTECH SOLUTIONS PTY LTD'
+[20/10/2025 21:29:23] 🚀🚀🚀 NUCLEAR-XML-RECONSTRUCTION v5.1.3 ENHANCED PROCESSING DOCUMENT! 🚀🚀🚀 PDF: FALSE
+[20/10/2025 21:29:23] === USR vs PT2 FIELD COMPARISON ===
+[20/10/2025 21:29:23] USR_Name: ✅ HAS VALUE: wesdfasdaf pty ltd
+[20/10/2025 21:29:23] PT2_Name: ✅ HAS VALUE: ykuhjghg pty ltd
+[20/10/2025 21:29:23] STYLE/SECTION BEFORE: word/document.xml styles=0 sectPr=3
+[20/10/2025 21:29:23] NEW MERGE TAG PROCESSING IS RUNNING! Processing: word/document.xml
+[20/10/2025 21:29:23] 🔍 FIELD COMPARISON: USR_Business = 'gfsd' (empty: NO)
+[20/10/2025 21:29:23] 🔍 FIELD COMPARISON: PT2_Business = 'ghjh' (empty: NO)
+[20/10/2025 21:29:23] 🔍 FIELD COMPARISON: USR_Name = 'wesdfasdaf pty ltd' (empty: NO)
+[20/10/2025 21:29:23] 🔍 FIELD COMPARISON: PT2_Name = 'ykuhjghg pty ltd' (empty: NO)
+[20/10/2025 21:29:23] 🔍🔍🔍 MERGE TAG REPLACEMENT STARTING! 🔍🔍🔍
+[20/10/2025 21:29:23] File: word/document.xml
+[20/10/2025 21:29:23] Replacement Array Size: 536
+[20/10/2025 21:29:23] Sample XML Content (first 500 chars): <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/1
+[20/10/2025 21:29:23] ✅✅✅ CRITICAL REPLACEMENT MADE! ✅✅✅
+[20/10/2025 21:29:23] Tag: {$USR_Business}
+[20/10/2025 21:29:23] Value: gfsd
+[20/10/2025 21:29:23] Count: 1
+[20/10/2025 21:29:23] ✅✅✅ CRITICAL REPLACEMENT MADE! ✅✅✅
+[20/10/2025 21:29:23] Tag: {$USR_Name}
+[20/10/2025 21:29:23] Value: wesdfasdaf pty ltd
+[20/10/2025 21:29:23] Count: 1
+[20/10/2025 21:29:23] 🎯 MODIFIER DEBUG: {$USR_Name} = 'wesdfasdaf pty ltd' - modifier matches: 1
+[20/10/2025 21:29:23] 🎯 MODIFIER SUCCESS: {$USR_Name|upper} -> 'WESDFASDAF PTY LTD'
+[20/10/2025 21:29:23] 🎯 MODIFIER DEBUG: {$PT2_Name} = 'ykuhjghg pty ltd' - modifier matches: 1
+[20/10/2025 21:29:23] 🎯 MODIFIER SUCCESS: {$PT2_Name|upper} -> 'YKUHJGHG PTY LTD'
