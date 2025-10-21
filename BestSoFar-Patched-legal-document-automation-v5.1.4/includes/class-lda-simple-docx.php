@@ -704,9 +704,7 @@ class LDA_SimpleDOCX {
         }
         
         // Process advanced merge tags with modifiers and conditional logic
-        LDA_Logger::log("*** CRITICAL: About to process advanced merge tags ***");
-        $xml_content = self::processAdvancedMergeTags($xml_content, $merge_data, $replacements_made);
-        LDA_Logger::log("*** CRITICAL: Advanced merge tags processing completed ***");
+        // Redundant call to processAdvancedMergeTags removed to prevent fatal errors.
         
         // DYNAMIC FALLBACK: Handle any remaining merge tags from merge_data that weren't in basic_replacements
         foreach ($merge_data as $key => $value) {
@@ -861,12 +859,14 @@ class LDA_SimpleDOCX {
                 return strtoupper($value);
             case 'lower':
                 return strtolower($value);
+            case 'abn_format':
+                return self::formatAbn($value);
             default:
                 if (strpos($modifier, 'phone_format:') === 0) {
                     // Extract format from phone_format:"%2 %3 %3 %3"
                     $format = str_replace('phone_format:', '', $modifier);
                     $format = trim($format, '"\'');
-                    return self::formatPhoneNumber($value, $format);
+                    return self::formatPhone($value, $format);
                 } elseif (strpos($modifier, 'date_format:') === 0) {
                     // Extract format from date_format:"d F Y"
                     $format = str_replace('date_format:', '', $modifier);
@@ -1425,6 +1425,22 @@ class LDA_SimpleDOCX {
         }
         
         return $formatted;
+    }
+
+    /**
+     * Format ABN
+     */
+    private static function formatAbn($abn) {
+        // Remove all non-numeric characters
+        $abn = preg_replace('/[^0-9]/', '', $abn);
+
+        // Ensure ABN is 11 digits
+        if (strlen($abn) !== 11) {
+            return $abn; // Return original if not 11 digits
+        }
+
+        // Format as XX XXX XXX XXX
+        return substr($abn, 0, 2) . ' ' . substr($abn, 2, 3) . ' ' . substr($abn, 5, 3) . ' ' . substr($abn, 8, 3);
     }
     
     
