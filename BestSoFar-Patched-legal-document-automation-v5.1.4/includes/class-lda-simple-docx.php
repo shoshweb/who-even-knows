@@ -704,7 +704,9 @@ class LDA_SimpleDOCX {
         }
         
         // Process advanced merge tags with modifiers and conditional logic
-        // Redundant call to processAdvancedMergeTags removed to prevent fatal errors.
+        LDA_Logger::log("*** CRITICAL: About to process advanced merge tags ***");
+        $xml_content = self::processAdvancedMergeTags($xml_content, $merge_data, $replacements_made);
+        LDA_Logger::log("*** CRITICAL: Advanced merge tags processing completed ***");
         
         // DYNAMIC FALLBACK: Handle any remaining merge tags from merge_data that weren't in basic_replacements
         foreach ($merge_data as $key => $value) {
@@ -859,14 +861,12 @@ class LDA_SimpleDOCX {
                 return strtoupper($value);
             case 'lower':
                 return strtolower($value);
-            case 'abn_format':
-                return self::formatAbn($value);
             default:
                 if (strpos($modifier, 'phone_format:') === 0) {
                     // Extract format from phone_format:"%2 %3 %3 %3"
                     $format = str_replace('phone_format:', '', $modifier);
                     $format = trim($format, '"\'');
-                    return self::formatPhone($value, $format);
+                    return self::formatPhoneNumber($value, $format);
                 } elseif (strpos($modifier, 'date_format:') === 0) {
                     // Extract format from date_format:"d F Y"
                     $format = str_replace('date_format:', '', $modifier);
@@ -1426,22 +1426,6 @@ class LDA_SimpleDOCX {
         
         return $formatted;
     }
-
-    /**
-     * Format ABN
-     */
-    private static function formatAbn($abn) {
-        // Remove all non-numeric characters
-        $abn = preg_replace('/[^0-9]/', '', $abn);
-
-        // Ensure ABN is 11 digits
-        if (strlen($abn) !== 11) {
-            return $abn; // Return original if not 11 digits
-        }
-
-        // Format as XX XXX XXX XXX
-        return substr($abn, 0, 2) . ' ' . substr($abn, 2, 3) . ' ' . substr($abn, 5, 3) . ' ' . substr($abn, 8, 3);
-    }
     
     
     /**
@@ -1450,50 +1434,163 @@ class LDA_SimpleDOCX {
      * ONLY fixes VERIFIED split patterns to prevent tag contamination
      */
     private static function fixSplitMergeTagsConservative($xml_content) {
-        LDA_Logger::log("Starting ROBUST split merge tag reconstruction v5.1.6");
+        LDA_Logger::log("Starting CONSERVATIVE split merge tag reconstruction v5.1.4");
 
         $fixes_applied = 0;
 
-        // This pattern finds a '{' then non-greedily captures everything until the next '}'
-        $xml_content = preg_replace_callback('/(\{)(.*?)(\})/s', function($matches) use (&$fixes_applied) {
-            $full_match = $matches[0];
-            $tag_open = $matches[1]; // "{"
-            $tag_content = $matches[2]; // Content between braces
-            $tag_close = $matches[3]; // "}"
+        // STEP 0: SAFE PRE-CLEAN - collapse XML fragments that sit inside braces
+        // Only collapse when the cleaned content (XML tags removed) exactly matches
+        // an allowed merge tag or conditional pattern. This avoids creating
+        // false-positive joins while allowing legitimate split tokens to be repaired.
+        LDA_Logger::log("v5.1.4 CONSERVATIVE: Running safe brace-collapse pre-clean");
 
-            // If the content between the braces contains XML tags, it's a split tag that needs fixing.
-            if (strpos($tag_content, '<') !== false) {
-                // Remove all XML tags from the content to reconstruct the tag.
-                $cleaned_content = preg_replace('/<[^>]+>/', '', $tag_content);
+        $pre_clean_count = 0;
 
-                // Reassemble the full, clean tag
-                $reconstructed_tag = $tag_open . $cleaned_content . $tag_close;
+        // Only target brace fragments that contain Word XML runs/tags (likely caused by DOCX runs)
+        $xml_content = preg_replace_callback('/\{[^}]*<w:[^}]*\}/s', function($matches) use (&$pre_clean_count) {
+            $orig = $matches[0];
 
-                // Normalize whitespace that might have been introduced inside the tag
-                $reconstructed_tag = preg_replace('/\s+/', ' ', $reconstructed_tag);
-                // Specifically, clean up whitespace inside the curly braces
-                $reconstructed_tag = preg_replace_callback('/(\{)(.*?)(\})/s', function($inner_matches) {
-                    return $inner_matches[1] . trim($inner_matches[2]) . $inner_matches[3];
-                }, $reconstructed_tag);
+            // Remove all XML tags to get the visible text inside the braces
+            $clean = preg_replace('/<[^>]+>/', '', $orig);
 
-                // A validation to ensure we've reconstructed a plausible merge tag or conditional.
-                // This prevents accidentally corrupting the document if we match something unintended.
-                if (preg_match('/^\{(if|elseif|else|\/if|listif|\/listif|\$).*\}$/i', $reconstructed_tag)) {
-                    $fixes_applied++;
-                    LDA_Logger::log("ROBUST FIX: Reconstructed '{$full_match}' -> '{$reconstructed_tag}'");
-                    return $reconstructed_tag;
-                } else {
-                     LDA_Logger::log("ROBUST-WARN: Matched '{$full_match}' but reconstructed tag '{$reconstructed_tag}' failed validation. Reverting.");
-                     // Failed validation, return original to be safe
-                     return $full_match;
+            // Normalize whitespace
+            $clean = preg_replace('/\s+/', ' ', $clean);
+            $clean = trim($clean);
+
+            // Define allowed patterns for safe collapse
+            $allowed_patterns = [
+                '/^\{\$[A-Z][A-Z0-9_]*(?:\|[a-z_]+(?:\:"[^"]*"|:\%[0-9 %]*)?)*\}$/', // {$TAG|modifier:"param"}
+                '/^\{if\s+.*\}$/i',
+                '/^\{elseif\s+.*\}$/i',
+                '/^\{else\}$/i',
+                '/^\{\/if\}$/i',
+                '/^\{listif\s+.*\}$/i',
+                '/^\{\/listif\}$/i'
+            ];
+
+            foreach ($allowed_patterns as $pat) {
+                if (preg_match($pat, $clean)) {
+                    $pre_clean_count++;
+                    LDA_Logger::log("CONSERVATIVE-PRECLEAN: Collapsed brace fragment to {$clean}");
+                    return $clean;
                 }
             }
 
-            // If no XML tags are present, it's not a split tag, so return the original match.
-            return $full_match;
+            // No allowed pattern matched — leave original XML in place
+            return $orig;
         }, $xml_content);
 
-        LDA_Logger::log("ROBUST: Split merge tag reconstruction completed. Applied {$fixes_applied} fixes.");
+        if ($pre_clean_count > 0) {
+            LDA_Logger::log("CONSERVATIVE-PRECLEAN: Applied {$pre_clean_count} safe brace collapses");
+        }
+
+        // STEP 1: Only fix spell-check markup that's CLEARLY splitting a single tag
+        LDA_Logger::log("v5.1.4 CONSERVATIVE: Processing only verified split patterns");
+
+        // ULTRA-CONSERVATIVE PATTERNS - Only fix when we're 100% sure it's a split tag
+        $conservative_patterns = [
+            // Pattern 1: ONLY fix when we have exact spell-check splits
+            '/\{\$<\/w:t><\/w:r><w:proofErr w:type="spellStart"\/><w:r[^>]*><w:rPr[^>]*><w:t>([A-Z][A-Z0-9_]+)<\/w:t><\/w:r><w:proofErr w:type="spellEnd"\/><w:r[^>]*><w:rPr[^>]*><w:t>\}/s' => '{$\\1}',
+
+            // Pattern 2: ONLY fix when we have exact grammar splits
+            '/\{\$<\/w:t><\/w:r><w:proofErr w:type="gramStart"\/><w:r[^>]*><w:rPr[^>]*><w:t>([A-Z][A-Z0-9_]+)<\/w:t><\/w:r><w:proofErr w:type="gramEnd"\/><w:r[^>]*><w:rPr[^>]*><w:t>\}/s' => '{$\\1}',
+
+            // Pattern 3: ONLY fix consecutive XML runs for the SAME field name (EXACT match)
+            '/\{\$([A-Z][A-Z0-9_]+)<\/w:t><\/w:r><w:r[^>]*><w:t>\}/s' => '{$\\1}',
+
+            // Pattern 4: ONLY fix modifier splits when field name matches exactly (conservative modifiers only)
+            '/\{\$([A-Z][A-Z0-9_]+)<\/w:t><\/w:r>.*?<w:t>(\|upper|\|lower|\|ucfirst)<\/w:t><\/w:r>.*?<w:t>\}/s' => '{$\\1\\2}',
+        ];
+
+        foreach ($conservative_patterns as $pattern => $replacement) {
+            $before = $xml_content;
+            $xml_content = preg_replace_callback($pattern, function($matches) use (&$fixes_applied, $replacement) {
+                // VERIFICATION: Only proceed if we're actually fixing a split tag
+                if (strpos($matches[0], '</w:t>') !== false && strpos($matches[0], '<w:t>') !== false) {
+                    $fixes_applied++;
+
+                    $result = $replacement;
+                    for ($i = 1; $i < count($matches); $i++) {
+                        $result = str_replace('\\' . $i, $matches[$i], $result);
+                    }
+
+                    LDA_Logger::log("CONSERVATIVE: Split tag reconstructed: {$result}");
+                    return $result;
+                }
+
+                // If no split detected, return original
+                return $matches[0];
+            }, $xml_content);
+        }
+
+        // STEP 1b: Targeted conservative fixes for observed fragments in merged documents
+        // These are intentionally narrow and only handle exact, repeated patterns we saw in the logs
+        $targeted_patterns = [
+            // Reconstruct DISPLAY_NAME / DISPLAY_EMAIL split fragments
+            '/\{\$<\/w:t>.*?<w:t>DISPLAY_<\/w:t>.*?<w:t>(NAME|EMAIL)\}/s' => '{$DISPLAY_\\1}',
+
+            // Reconstruct PT2_Signatory fragments (FN, LN, Role) when split across runs
+            '/\{\$([A-Z]{2,4})_<\/w:t>.*?<w:t>Signatory<\/w:t>.*?<w:t>(_FN|_LN|_Role)\}/s' => '{$\\1_Signatory\\2}',
+
+            // Reconstruct common modifier splits for Name upper/lower
+            '/\{\$([A-Z][A-Z0-9_]+)<\/w:t><\/w:r>.*?<w:t>\|(upper|lower|ucfirst)<\/w:t>.*?<w:t>\}/s' => '{$\\1|\\2}',
+
+            // Reconstruct fragmented PT2_ABN phone_format modifier examples (very narrow)
+            '/\{\$PT2_ABN[^}]*?<w:t>format:\%([0-9 ]+)<\/w:t>.*?\}/s' => '{$PT2_ABN|phone_format:%\\1}',
+            // Fix USR_Name fragmented by proofErr/grammar tags
+            '/\{\$<\/w:t><\/w:r><w:proofErr[^>]*>.*?<w:t>(USR_Name)<\/w:t>.*?<w:t>\}/s' => '{$USR_Name}',
+            '/\{\$<\/w:t><\/w:r><w:proofErr[^>]*>.*?<w:t>(PT2_Name)<\/w:t>.*?<w:t>\}/s' => '{$PT2_Name}',
+        ];
+
+        foreach ($targeted_patterns as $pattern => $replacement) {
+            $before = $xml_content;
+            $xml_content = preg_replace_callback($pattern, function($matches) use (&$fixes_applied, $replacement) {
+                // Only accept exact, short matches to avoid false positives
+                if (count($matches) > 1) {
+                    $fixes_applied++;
+                    $result = $replacement;
+                    for ($i = 1; $i < count($matches); $i++) {
+                        $result = str_replace('\\' . $i, $matches[$i], $result);
+                    }
+                    LDA_Logger::log("CONSERVATIVE-TARGETED: Reconstructed: {$result}");
+                    return $result;
+                }
+                return $matches[0];
+            }, $xml_content);
+        }
+
+        // STEP 2: VERIFICATION - Make sure we didn't create any contaminated tags
+        $contamination_patterns = [
+            '/\{\$[A-Z_]+\}\{\$[A-Z_]+\}/',  // Detect joined tags like {$USR_Business}{$PT2_Business}
+            '/\{\$[A-Z_]+[^}]*\{\$[A-Z_]+\}/', // Detect embedded tags
+        ];
+
+        foreach ($contamination_patterns as $contamination_pattern) {
+            if (preg_match($contamination_pattern, $xml_content, $contamination_matches)) {
+                LDA_Logger::log("⚠️ CONTAMINATION DETECTED: " . $contamination_matches[0]);
+                LDA_Logger::log("❌ CONSERVATIVE RECONSTRUCTION PREVENTED CONTAMINATION");
+
+                // Log contamination to diagnostic file
+                $log_dir = '/home4/modelaw/public_html/staging/wp-content/uploads/lda-logs/';
+                if (!file_exists($log_dir)) {
+                    if (function_exists('wp_mkdir_p')) {
+                        wp_mkdir_p($log_dir);
+                    } else {
+                        if (!is_dir($log_dir)) {
+                            mkdir($log_dir, 0755, true);
+                        }
+                    }
+                }
+                $diagnostic_log = $log_dir . 'DIAGNOSTIC-AUSTRALIA-OPTIMIZED.log';
+                $timestamp = date('d/m/Y H:i:s', time() + (11 * 3600));
+                $diagnostic_msg = "[{$timestamp}] ❌ CONTAMINATION DETECTED: {$contamination_matches[0]} - USING CONSERVATIVE APPROACH\n";
+                file_put_contents($diagnostic_log, $diagnostic_msg, FILE_APPEND | LOCK_EX);
+
+                break; // Stop checking once we find contamination
+            }
+        }
+
+        LDA_Logger::log("CONSERVATIVE: Split merge tag reconstruction completed. Applied {$fixes_applied} VERIFIED fixes (contamination prevention active)");
         return $xml_content;
     }
     

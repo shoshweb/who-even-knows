@@ -717,11 +717,62 @@ class LDA_DocumentProcessor {
             $this->extractUserInfoFromFormFields($merge_data);
         }
         
-        // LDA_VERSION: REMOVED ALL FALLBACK LOGIC
-        // Original fallback logic set USR_Business from USR_BUSINESS and searched form fields
-        // This was overriding admin-configured field mappings with hardcoded assumptions
-        // NOW ONLY admin-configured mappings via WordPress interface control field population
-        LDA_Logger::log(LDA_VERSION . ": Using ONLY admin-configured field mappings - NO fallback processing");
+        // v5.1.4: Correctly handle checkbox values from Gravity Forms entry for conditional logic.
+        LDA_Logger::log("v5.1.4: Processing checkbox fields for conditional logic.");
+
+        // This mapping connects the Gravity Form checkbox field ID (e.g., '27.1')
+        // to the template variable name (e.g., 'Pmt_Negotiate') and the value
+        // expected by the template's conditional logic (e.g., 'yes2').
+        // This is based on combining information from the user's form data and the original plugin code.
+        $purpose_mapping = [
+            '27.1' => ['Pmt_Negotiate', 'yes2'], // Corresponds to "Negotiating..." checkbox
+            '27.2' => ['Pmt_Business', 'yes3'],  // Corresponds to "Business relations" checkbox
+            '27.3' => ['Pmt_Other', 'yes4'],     // Corresponds to "Other" checkbox
+            // Pmt_Services with 'yes1' is assumed to be an option not selected in the user's form.
+        ];
+
+        // Initialize all potential purpose fields to empty to ensure clean state
+        $all_purpose_fields = ['Pmt_Services', 'Pmt_Negotiate', 'Pmt_Business', 'Pmt_Other', 'Pmt_Agreements', 'Pmt_Relations'];
+        foreach($all_purpose_fields as $pmt_field) {
+            $merge_data[$pmt_field] = '';
+        }
+        LDA_Logger::log("v5.1.4: Initialized all purpose fields to empty.");
+
+        // Find field 27 (checkboxes) to process its inputs
+        $field_27 = null;
+        foreach ($this->form['fields'] as $field) {
+            if ($field->id == 27) {
+                $field_27 = $field;
+                break;
+            }
+        }
+
+        if ($field_27 && is_array($field_27->inputs)) {
+            LDA_Logger::log("v5.1.4: Found field 27. Processing its inputs for selected checkboxes.");
+            foreach ($field_27->inputs as $input) {
+                $checkbox_key = $input['id']; // e.g., '27.1'
+
+                // Check if the checkbox was selected in the form entry
+                if (!empty($this->entry[$checkbox_key]) && isset($purpose_mapping[$checkbox_key])) {
+                    list($pmt_field, $yes_value) = $purpose_mapping[$checkbox_key];
+
+                    $merge_data[$pmt_field] = $yes_value;
+                    LDA_Logger::log("🎯 PMT FIELD CREATED: {$pmt_field} = '{$yes_value}' (from entry key {$checkbox_key})");
+
+                    // Also create template alias fields for backwards compatibility
+                    if ($pmt_field === 'Pmt_Negotiate') {
+                        $merge_data['Pmt_Agreements'] = $yes_value;
+                        LDA_Logger::log("🎯 PMT ALIAS: Pmt_Agreements = '{$yes_value}'");
+                    }
+                    if ($pmt_field === 'Pmt_Business') {
+                        $merge_data['Pmt_Relations'] = $yes_value;
+                        LDA_Logger::log("🎯 PMT ALIAS: Pmt_Relations = '{$yes_value}'");
+                    }
+                }
+            }
+        } else {
+             LDA_Logger::log("⚠️ Field 27 (Purposes checkboxes) not found in form.");
+        }
         
         // Generate missing standard merge tags
         $this->generateMissingMergeTags($merge_data);
